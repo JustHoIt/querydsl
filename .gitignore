@@ -3,12 +3,11 @@ HELP.md
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
-.gradle
 .idea
 gradle
 gradlew
 gradlew.bat
-HELP.md
+/src/main/generated
 
 
 ### STS ###
