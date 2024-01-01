@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
+import static com.study.querydsl.entity.QMember.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
@@ -20,6 +21,8 @@ public class QuerydslBasicTest {
 
     @Autowired
     EntityManager em;
+
+    JPAQueryFactory qFactory;
 
     @BeforeEach
     public void before() {
@@ -53,10 +56,10 @@ public class QuerydslBasicTest {
     public void startQuerydsl(){
         //Querydsl member1 찾기
         // 1. JPAQueryFactory 에 EntityManager(em)을 넘겨줘야한다.
-        // 2. JPAQueryFactory는 필드에서 선언해줘도 된다.
         JPAQueryFactory queryFactory = new JPAQueryFactory(em);
 
         QMember qMember = new QMember("m");
+        // 1. Q클래스를 static import 하면  코드를 깔끔하게 작성할 수 있다.
         // * 컴파일 시점에서 오류를 발견해준다.
         Member findMember = queryFactory
                 .select(qMember)
@@ -64,7 +67,24 @@ public class QuerydslBasicTest {
                 .where(qMember.username.eq("member1"))
                 .fetchOne();
         // JPQL에서는 파라미터를 바인딩 해줘야하지만 Querydsl에서는 자동으로 처리한다.
+        assertThat(findMember.getUsername()).isEqualTo("member1");
+    }
 
+    @Test
+    public void startQuerydsl2(){
+        //Querydsl2 member1 찾기 (코드 간결하게 만들기)
+        // 2. JPAQueryFactory는 필드에서 선언해줘도 된다.
+         qFactory = new JPAQueryFactory(em);
+
+
+        // 1. Q클래스를 static import 하면  코드를 깔끔하게 작성할 수 있다.
+        // * 컴파일 시점에서 오류를 발견해준다.
+        Member findMember = qFactory
+                .select(member)
+                .from(member)
+                .where(member.username.eq("member1"))
+                .fetchOne();
+        // JPQL에서는 파라미터를 바인딩 해줘야하지만 Querydsl에서는 자동으로 처리한다.
         assertThat(findMember.getUsername()).isEqualTo("member1");
     }
 
