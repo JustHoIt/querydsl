@@ -9,7 +9,6 @@ gradlew
 gradlew.bat
 /src/main/generated
 /build
-/src/main/resources/application.yml
 
 
 ### STS ###
@@ -32,6 +31,7 @@ bin/
 out/
 !**/src/main/**/out/
 !**/src/test/**/out/
+application.yml
 
 ### NetBeans ###
 /nbproject/private/
