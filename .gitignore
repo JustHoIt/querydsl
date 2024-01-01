@@ -9,6 +9,7 @@ gradlew
 gradlew.bat
 /src/main/generated
 /build
+/src/main/resources/application.yml
 
 
 ### STS ###
