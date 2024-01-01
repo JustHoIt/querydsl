@@ -46,14 +46,14 @@ public class QuerydslBasicTest {
     public void startJPQL() {
         //JPQL member1 찾기
         Member findMember = em.createQuery("select m from Member m where m.username = :username", Member.class)
-                .setParameter("username","member1")
+                .setParameter("username", "member1")
                 .getSingleResult();
 
         assertThat(findMember.getUsername()).isEqualTo("member1");
     }
 
     @Test
-    public void startQuerydsl(){
+    public void startQuerydsl() {
         //Querydsl member1 찾기
         // 1. JPAQueryFactory 에 EntityManager(em)을 넘겨줘야한다.
         JPAQueryFactory queryFactory = new JPAQueryFactory(em);
@@ -71,10 +71,10 @@ public class QuerydslBasicTest {
     }
 
     @Test
-    public void startQuerydsl2(){
+    public void startQuerydsl2() {
         //Querydsl2 member1 찾기 (코드 간결하게 만들기)
         // 2. JPAQueryFactory는 필드에서 선언해줘도 된다.
-         qFactory = new JPAQueryFactory(em);
+        qFactory = new JPAQueryFactory(em);
 
 
         // 1. Q클래스를 static import 하면  코드를 깔끔하게 작성할 수 있다.
@@ -85,6 +85,47 @@ public class QuerydslBasicTest {
                 .where(member.username.eq("member1"))
                 .fetchOne();
         // JPQL에서는 파라미터를 바인딩 해줘야하지만 Querydsl에서는 자동으로 처리한다.
+        assertThat(findMember.getUsername()).isEqualTo("member1");
+    }
+
+    @Test
+    public void search() {
+        qFactory = new JPAQueryFactory(em);
+        Member findMember = qFactory
+                .selectFrom(member)
+                .where(member.username.eq("member1")
+                        .and(member.age.eq(10)))
+                .fetchOne();
+        /*
+        * eq() // username = 'member1'
+        * ne() // username != 'member1'
+        * eq().not() // username != 'member1'
+        * isNotNull() // username is not null
+        * in(10,20) // age in(10,20)
+        * notIn(10,20) // age not in(10, 20)
+        * between(10,30) // between 10 ~ 30
+        * goe(30) // >= 30
+        * gt(30) // > 30
+        * loe(30) // <= 30
+        * lt(30) // < 30
+        * like("string%") // like
+        * contains("string") // like '%string%' 검색
+        * startsWith("string") // like 'string%' 검색
+        * */
+
+        assertThat(findMember.getUsername()).isEqualTo("member1");
+    }
+
+    @Test
+    public void searchAndParam(){
+        qFactory = new JPAQueryFactory(em);
+        Member findMember = qFactory
+                .selectFrom(member)
+                .where(
+                        member.username.eq("member1"),
+                        member.age.eq(10))
+                .fetchOne();
+
         assertThat(findMember.getUsername()).isEqualTo("member1");
     }
 
