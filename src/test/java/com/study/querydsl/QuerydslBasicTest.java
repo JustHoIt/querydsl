@@ -1,6 +1,7 @@
 package com.study.querydsl;
 
 
+import com.querydsl.core.QueryResults;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.study.querydsl.entity.Member;
 import com.study.querydsl.entity.QMember;
@@ -11,6 +12,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 import static com.study.querydsl.entity.QMember.*;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -97,27 +100,27 @@ public class QuerydslBasicTest {
                         .and(member.age.eq(10)))
                 .fetchOne();
         /*
-        * eq() // username = 'member1'
-        * ne() // username != 'member1'
-        * eq().not() // username != 'member1'
-        * isNotNull() // username is not null
-        * in(10,20) // age in(10,20)
-        * notIn(10,20) // age not in(10, 20)
-        * between(10,30) // between 10 ~ 30
-        * goe(30) // >= 30
-        * gt(30) // > 30
-        * loe(30) // <= 30
-        * lt(30) // < 30
-        * like("string%") // like
-        * contains("string") // like '%string%' 검색
-        * startsWith("string") // like 'string%' 검색
-        * */
+         * eq() // username = 'member1'
+         * ne() // username != 'member1'
+         * eq().not() // username != 'member1'
+         * isNotNull() // username is not null
+         * in(10,20) // age in(10,20)
+         * notIn(10,20) // age not in(10, 20)
+         * between(10,30) // between 10 ~ 30
+         * goe(30) // >= 30
+         * gt(30) // > 30
+         * loe(30) // <= 30
+         * lt(30) // < 30
+         * like("string%") // like
+         * contains("string") // like '%string%' 검색
+         * startsWith("string") // like 'string%' 검색
+         * */
 
         assertThat(findMember.getUsername()).isEqualTo("member1");
     }
 
     @Test
-    public void searchAndParam(){
+    public void searchAndParam() {
         qFactory = new JPAQueryFactory(em);
         Member findMember = qFactory
                 .selectFrom(member)
@@ -128,5 +131,45 @@ public class QuerydslBasicTest {
 
         assertThat(findMember.getUsername()).isEqualTo("member1");
     }
+
+    @Test
+    public void resultFetch() {
+
+        qFactory = new JPAQueryFactory(em);
+        //멤버를 리스트로 조회
+        List<Member> fetch = qFactory
+                .selectFrom(member)
+                .fetch();
+        //멤버를 단건 조회
+        Member fetchOne = qFactory
+                .selectFrom(member)
+                .fetchOne();
+        // 처음 한 것 조회
+        Member fetchFirst = qFactory
+                .selectFrom(member)
+                .fetchFirst();
+        // 페이징에서 사용
+        QueryResults<Member> results = qFactory
+                .selectFrom(member)
+                .fetchResults();
+
+        results.getTotal();
+        List<Member> content = results.getResults();
+        //count 쿼리로 변경
+        long total = qFactory
+                .selectFrom(member)
+                .fetchCount();
+
+        /*
+        * fetch() : 리스트 조회, 데이터 없으면 빈 리스트 반환
+        * fetchOne() : 단 건 조회
+        * -> 결과가 없다면 Null
+        * -> 결과가 둘 이상이면 'com.querydsl.core.NonUniqueResultException' 에러 발생
+        * fetchFirst() : 'limit(1).fetchOne()'
+        * fetchResults() : 페이징 정보 포함, total count 쿼리 추가 실행
+        * fetchCount() : count 쿼리로 변경해서 count 수 조회
+        * */
+    }
+
 
 }
