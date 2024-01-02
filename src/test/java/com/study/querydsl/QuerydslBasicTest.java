@@ -281,5 +281,46 @@ public class QuerydslBasicTest {
 
     }
 
+    /*
+     * 팀 A에 소속된 모든 회원
+     * */
+    @Test
+    public void join() {
+        qFactory = new JPAQueryFactory(em);
+        List<Member> result = qFactory
+                .selectFrom(member)
+                .join(member.team, team)
+//                .leftJoin(member.team, team)
+
+                .where(team.name.eq("teamA"))
+                .fetch();
+
+        assertThat(result)
+                .extracting("username")
+                .containsExactly("member1", "member2");
+    }
+
+    /*
+     * 세타 조인
+     * 회원의 이름이 팀 이름과 같은 회원 조회*/
+    @Test
+    public void theta_join() {
+        /*
+        * from 절에 여러 엔티티를 선택해서 세타 조인
+        * 외부 조인 불가능 -> on을 사용하면 외부 조인 가능*/
+        qFactory = new JPAQueryFactory(em);
+        em.persist(new Member("teamA"));
+        em.persist(new Member("teamB"));
+        em.persist(new Member("teamC"));
+
+        List<Member> result = qFactory
+                .select(member)
+                .from(member, team)
+                .where(member.username.eq(team.name))
+                .fetch();
+
+        assertThat(result).extracting("username").containsExactly("teamA", "teamB");
+    }
+
 
 }
