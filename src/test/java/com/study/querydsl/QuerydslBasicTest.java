@@ -3,6 +3,7 @@ package com.study.querydsl;
 
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.study.querydsl.entity.Member;
 import com.study.querydsl.entity.QMember;
@@ -306,8 +307,8 @@ public class QuerydslBasicTest {
     @Test
     public void theta_join() {
         /*
-        * from 절에 여러 엔티티를 선택해서 세타 조인
-        * 외부 조인 불가능 -> on을 사용하면 외부 조인 가능*/
+         * from 절에 여러 엔티티를 선택해서 세타 조인
+         * 외부 조인 불가능 -> on을 사용하면 외부 조인 가능*/
         qFactory = new JPAQueryFactory(em);
         em.persist(new Member("teamA"));
         em.persist(new Member("teamB"));
@@ -322,5 +323,49 @@ public class QuerydslBasicTest {
         assertThat(result).extracting("username").containsExactly("teamA", "teamB");
     }
 
+    /*
+     * ex) 회원과 팀을 조인하면서, 팀 이름이 teamA인 팀만 조인, 회원은 모두 조회
+     * JPQL : Select m, t from member m left join m.team t on t.name = 'teamA'
+     * */
+    @Test
+    public void join_on_filtering() {
+        qFactory = new JPAQueryFactory(em);
+
+        List<Tuple> result = qFactory.select(member, team)
+                .from(member)
+                .leftJoin(member.team, team).on(team.name.eq("teamA"))
+                .fetch();
+
+        for (Tuple tuple : result) {
+            System.out.println("Tuple : " + tuple);
+        }
+        // 그냥 inner join에서 on절을 사용하는 것은 그냥 where절에서 조건을 거나 똑같은 결과
+    }
+
+
+    /*
+    * 연관관계 없는 엔티티를 외부 조인
+    * 회원의 이름이 팀 이름과 같은 대상 외부 조인
+    * */
+    @Test
+    public void join_on_no_relation() {
+        /*
+         * from 절에 여러 엔티티를 선택해서 세타 조인
+         * 외부 조인 불가능 -> on을 사용하면 외부 조인 가능*/
+        qFactory = new JPAQueryFactory(em);
+        em.persist(new Member("teamA"));
+        em.persist(new Member("teamB"));
+        em.persist(new Member("teamC"));
+
+        List<Tuple> result = qFactory
+                .select(member, team)
+                .from(member)
+                .leftJoin(team).on(member.username.eq("teamA"))
+                .fetch();
+
+        for (Tuple tuple : result) {
+            System.out.println("Tuple : " + tuple);
+        }
+    }
 
 }
