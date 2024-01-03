@@ -10,6 +10,8 @@ import com.study.querydsl.entity.QMember;
 import com.study.querydsl.entity.QTeam;
 import com.study.querydsl.entity.Team;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.PersistenceUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -344,9 +346,9 @@ public class QuerydslBasicTest {
 
 
     /*
-    * 연관관계 없는 엔티티를 외부 조인
-    * 회원의 이름이 팀 이름과 같은 대상 외부 조인
-    * */
+     * 연관관계 없는 엔티티를 외부 조인
+     * 회원의 이름이 팀 이름과 같은 대상 외부 조인
+     * */
     @Test
     public void join_on_no_relation() {
         /*
@@ -366,6 +368,42 @@ public class QuerydslBasicTest {
         for (Tuple tuple : result) {
             System.out.println("Tuple : " + tuple);
         }
+    }
+
+    @PersistenceUnit
+    EntityManagerFactory emf;
+
+    @Test
+    public void fetch_join_no() {
+        qFactory = new JPAQueryFactory(em);
+        em.flush();
+        em.clear();
+
+        Member findMember = qFactory
+                .selectFrom(member)
+                .where(member.username.eq("member1"))
+                .fetchOne();
+
+        boolean loaded = emf.getPersistenceUnitUtil().isLoaded(findMember.getTeam());
+        assertThat(loaded).as("페치 조인 미적용").isFalse();
+
+    }
+
+    @Test
+    public void fetch_join_use() {
+        qFactory = new JPAQueryFactory(em);
+        em.flush();
+        em.clear();
+
+        Member findMember = qFactory
+                .selectFrom(member)
+                .join(member.team, team).fetchJoin()
+                .where(member.username.eq("member1"))
+                .fetchOne();
+
+        boolean loaded = emf.getPersistenceUnitUtil().isLoaded(findMember.getTeam());
+        assertThat(loaded).as("페치 조인 미적용").isTrue();
+
     }
 
 }
