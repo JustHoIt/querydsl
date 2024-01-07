@@ -3,15 +3,11 @@ package com.study.querydsl;
 
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
-import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.Expressions;
-import com.querydsl.jpa.JPAExpressions;
-import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.study.querydsl.entity.Member;
 import com.study.querydsl.entity.QMember;
-import com.study.querydsl.entity.QTeam;
 import com.study.querydsl.entity.Team;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
@@ -24,9 +20,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-import static com.querydsl.jpa.JPAExpressions.*;
-import static com.study.querydsl.entity.QMember.*;
-import static com.study.querydsl.entity.QTeam.*;
+import static com.querydsl.jpa.JPAExpressions.select;
+import static com.study.querydsl.entity.QMember.member;
+import static com.study.querydsl.entity.QTeam.team;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
@@ -40,6 +36,7 @@ public class QuerydslBasicTest {
 
     @BeforeEach
     public void before() {
+        qFactory = new JPAQueryFactory(em);
         Team teamA = new Team("teamA");
         Team teamB = new Team("teamB");
         em.persist(teamA);
@@ -88,7 +85,7 @@ public class QuerydslBasicTest {
     public void startQuerydsl2() {
         //Querydsl2 member1 찾기 (코드 간결하게 만들기)
         // 2. JPAQueryFactory는 필드에서 선언해줘도 된다.
-        qFactory = new JPAQueryFactory(em);
+//        qFactory = new JPAQueryFactory(em);
 
 
         // 1. Q클래스를 static import 하면  코드를 깔끔하게 작성할 수 있다.
@@ -104,7 +101,6 @@ public class QuerydslBasicTest {
 
     @Test
     public void search() {
-        qFactory = new JPAQueryFactory(em);
         Member findMember = qFactory
                 .selectFrom(member)
                 .where(member.username.eq("member1")
@@ -132,7 +128,6 @@ public class QuerydslBasicTest {
 
     @Test
     public void searchAndParam() {
-        qFactory = new JPAQueryFactory(em);
         Member findMember = qFactory
                 .selectFrom(member)
                 .where(
@@ -145,8 +140,6 @@ public class QuerydslBasicTest {
 
     @Test
     public void resultFetch() {
-
-        qFactory = new JPAQueryFactory(em);
         //멤버를 리스트로 조회
         List<Member> fetch = qFactory
                 .selectFrom(member)
@@ -191,7 +184,6 @@ public class QuerydslBasicTest {
      * */
     @Test
     public void sort() {
-        qFactory = new JPAQueryFactory(em);
         em.persist(new Member(null, 100));
         em.persist(new Member("member5", 100));
         em.persist(new Member("member6", 100));
@@ -212,8 +204,6 @@ public class QuerydslBasicTest {
 
     @Test
     public void paging1() {
-        qFactory = new JPAQueryFactory(em);
-
         List<Member> result = qFactory
                 .selectFrom(member)
                 .orderBy(member.username.desc())
@@ -226,8 +216,6 @@ public class QuerydslBasicTest {
 
     @Test
     public void paging2() {
-        qFactory = new JPAQueryFactory(em);
-
         QueryResults<Member> queryResults = qFactory
                 .selectFrom(member)
                 .orderBy(member.username.desc())
@@ -243,8 +231,6 @@ public class QuerydslBasicTest {
 
     @Test
     public void aggregation() {
-        qFactory = new JPAQueryFactory(em);
-
         List<Tuple> result = qFactory
                 .select(
                         member.count(),
@@ -270,7 +256,6 @@ public class QuerydslBasicTest {
 
     @Test
     public void group() {
-        qFactory = new JPAQueryFactory(em);
         List<Tuple> result = qFactory
                 .select(team.name, member.age.avg())
                 .from(member)
@@ -294,7 +279,6 @@ public class QuerydslBasicTest {
      * */
     @Test
     public void join() {
-        qFactory = new JPAQueryFactory(em);
         List<Member> result = qFactory
                 .selectFrom(member)
                 .join(member.team, team)
@@ -316,7 +300,6 @@ public class QuerydslBasicTest {
         /*
          * from 절에 여러 엔티티를 선택해서 세타 조인
          * 외부 조인 불가능 -> on을 사용하면 외부 조인 가능*/
-        qFactory = new JPAQueryFactory(em);
         em.persist(new Member("teamA"));
         em.persist(new Member("teamB"));
         em.persist(new Member("teamC"));
@@ -336,8 +319,6 @@ public class QuerydslBasicTest {
      * */
     @Test
     public void join_on_filtering() {
-        qFactory = new JPAQueryFactory(em);
-
         List<Tuple> result = qFactory.select(member, team)
                 .from(member)
                 .leftJoin(member.team, team).on(team.name.eq("teamA"))
@@ -359,7 +340,6 @@ public class QuerydslBasicTest {
         /*
          * from 절에 여러 엔티티를 선택해서 세타 조인
          * 외부 조인 불가능 -> on을 사용하면 외부 조인 가능*/
-        qFactory = new JPAQueryFactory(em);
         em.persist(new Member("teamA"));
         em.persist(new Member("teamB"));
         em.persist(new Member("teamC"));
@@ -380,7 +360,6 @@ public class QuerydslBasicTest {
 
     @Test
     public void fetch_join_no() {
-        qFactory = new JPAQueryFactory(em);
         em.flush();
         em.clear();
 
@@ -396,7 +375,6 @@ public class QuerydslBasicTest {
 
     @Test
     public void fetch_join_use() {
-        qFactory = new JPAQueryFactory(em);
         em.flush();
         em.clear();
 
@@ -417,7 +395,6 @@ public class QuerydslBasicTest {
      */
     @Test
     public void subQueryEq() {
-        qFactory = new JPAQueryFactory(em);
         QMember memberSub = new QMember("memberSub");
 
         List<Member> result = qFactory
@@ -438,7 +415,6 @@ public class QuerydslBasicTest {
      */
     @Test
     public void subQueryGoe() {
-        qFactory = new JPAQueryFactory(em);
         QMember memberSub = new QMember("memberSub");
 
         List<Member> result = qFactory
@@ -455,7 +431,6 @@ public class QuerydslBasicTest {
 
     @Test
     public void subQueryIn() {
-        qFactory = new JPAQueryFactory(em);
         QMember memberSub = new QMember("memberSub");
 
         List<Member> result = qFactory
@@ -473,7 +448,6 @@ public class QuerydslBasicTest {
 
     @Test
     public void selectSubQuery() {
-        qFactory = new JPAQueryFactory(em);
         QMember memberSub = new QMember("memberSub");
 
         List<Tuple> result = qFactory.select(member.username,
@@ -489,7 +463,6 @@ public class QuerydslBasicTest {
 
     @Test
     public void basicCase() {
-        qFactory = new JPAQueryFactory(em);
         List<String> result = qFactory.select(member.age
                         .when(10).then("열살")
                         .when(20).then("스무살")
@@ -505,8 +478,6 @@ public class QuerydslBasicTest {
 
     @Test
     public void complexCase() {
-        qFactory = new JPAQueryFactory(em);
-
         List<String> result = qFactory.select(new CaseBuilder()
                         .when(member.age.between(0, 20)).then("0~20살")
                         .when(member.age.between(21, 30)).then("21~30살")
@@ -521,8 +492,6 @@ public class QuerydslBasicTest {
 
     @Test
     public void constant() {
-        qFactory = new JPAQueryFactory(em);
-
         List<Tuple> result = qFactory.select(member.username, Expressions.constant("A"))
                 .from(member)
                 .fetch();
@@ -534,8 +503,6 @@ public class QuerydslBasicTest {
 
     @Test
     public void concat() {
-        qFactory = new JPAQueryFactory(em);
-
         List<String> result = qFactory
                 .select(member.username.concat("_").concat(member.age.stringValue()))
                 .from(member)
@@ -545,12 +512,35 @@ public class QuerydslBasicTest {
         for (String s : result) {
             System.out.println("s : " + s);
         }
+    }
 
-        //given
+    @Test
+    public void simpleProjection() {
+        List<String> result = qFactory
+                .select(member.username)
+                .from(member)
+                .fetch();
 
-        //when
+        for (String s : result) {
+            System.out.println("s : " + s);
+        }
+    }
 
-        //then
+    @Test
+    public void tupleProjection() {
+        // tuple 도 repository에서만 쓰고 나갈때는 dto로 바꾸기
+        List<Tuple> result = qFactory
+                .select(member.username, member.age)
+                .from(member)
+                .fetch();
+
+        for (Tuple tuple : result) {
+            String username = tuple.get(member.username);
+            Integer age = tuple.get(member.age);
+            System.out.println("username : " + username);
+            System.out.println("age : " + age);
+
+        }
 
     }
 
