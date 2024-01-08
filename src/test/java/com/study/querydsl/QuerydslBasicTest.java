@@ -1,11 +1,17 @@
 package com.study.querydsl;
 
 
+import com.querydsl.core.JoinExpression;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.ExpressionUtils;
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.study.querydsl.dto.MemberDto;
+import com.study.querydsl.dto.UserDto;
 import com.study.querydsl.entity.Member;
 import com.study.querydsl.entity.QMember;
 import com.study.querydsl.entity.Team;
@@ -543,5 +549,104 @@ public class QuerydslBasicTest {
         }
 
     }
+
+    //DTO조회(JPQL)
+    @Test
+    public void findDtoByJPQL() {
+        List<MemberDto> result = em.createQuery("select new com.study.querydsl.dto.MemberDto(m.username, m.age) from Member m", MemberDto.class)
+                .getResultList();
+        for (MemberDto memberDto : result) {
+            System.out.println("memberDto : " + memberDto);
+        }
+    }
+    // 순수 JPA에서 Dto를 조회할 때는 New 명령어를 사용해야함
+    // Dto의 Package 이름을 다 적어줘야해서 지저분함
+    // 생성자 방식만 지원한다.
+
+    //DTO조회(setter)
+    @Test
+    public void findDtoBySetter() {
+        List<MemberDto> result = qFactory
+                .select(Projections.bean(MemberDto.class, member.username, member.age))
+                .from(member)
+                .fetch();
+
+        for (MemberDto memberDto : result) {
+            System.out.println("memberDto : " + memberDto);
+        }
+    }
+
+    //DTO조회(field)
+    @Test
+    public void findDtoByField() {
+        List<MemberDto> result = qFactory
+                .select(Projections.fields(MemberDto.class, member.username, member.age))
+                .from(member)
+                .fetch();
+
+        for (MemberDto memberDto : result) {
+            System.out.println("memberDto : " + memberDto);
+        }
+    }
+
+    //DTO조회(constructor)
+    @Test
+    public void findDtoByConstructor() {
+        List<MemberDto> result = qFactory
+                .select(Projections.constructor(MemberDto.class, member.username, member.age))
+                .from(member)
+                .fetch();
+
+        for (MemberDto memberDto : result) {
+            System.out.println("memberDto : " + memberDto);
+        }
+    }
+
+    //DTO조회(fields, userDto)
+    @Test
+    public void findUserDto() {
+        List<UserDto> result = qFactory
+                .select(Projections.fields(UserDto.class, member.username.as("name"), member.age))
+                .from(member)
+                .fetch();
+
+        for (UserDto userDto : result) {
+            System.out.println("UserDto : " + userDto);
+        }
+    }
+
+    //DTO조회(fields, userDto, SubQuery)
+    @Test
+    public void findSubUserDto() {
+        QMember memberSub = new QMember("memberSub");
+        List<UserDto> result = qFactory
+                .select(Projections.fields(UserDto.class, member.username.as("name"),
+                        ExpressionUtils.as(JPAExpressions
+                                .select(memberSub.age.max())
+                                .from(memberSub), "age")
+                ))
+                .from(member)
+                .fetch();
+
+        for (UserDto userDto : result) {
+            System.out.println("UserDto : " + userDto);
+        }
+    }
+    // 프로퍼티나, 필드 접근 생성 방식에서 이름이 다를 때 해결 방안
+    // ExpressionUtils.as(source, alias) : 필드나, 서브 쿼리에 별칭 적용
+    // 'username.as("memberName")' : 필드에 별칭 적용
+
+    @Test
+    public void findDtoByConstructor2() {
+        List<UserDto> result = qFactory
+                .select(Projections.constructor(UserDto.class, member.username, member.age))
+                .from(member)
+                .fetch();
+
+        for (UserDto userDto : result) {
+            System.out.println("UserDto : " + userDto);
+        }
+    }
+
 
 }
