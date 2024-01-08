@@ -26,6 +26,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.Commit;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -726,5 +727,51 @@ public class QuerydslBasicTest {
 
     private BooleanExpression allEq(String usernameCond, Integer ageCond) {
         return usernameEq2(usernameCond).and(ageEq2(ageCond));
+    }
+
+    @Test
+    @Commit
+    public void bulkUpdate() {
+        // 1. member1 = 10 => 1. DB 비회원
+        // 2. member2 = 20 => 2. DB 비회원
+        // 3. member3 = 30 => 3. DB member3
+        // 4. member4 = 40 => 4. DB member4
+
+
+        long count = qFactory
+                .update(member)
+                .set(member.username, "비회원")
+                .where(member.age.lt(28))
+                .execute();
+        em.flush();
+        em.clear();
+        // 벌크연산을하면 영속성 컨텍스 정보와 DB의 정보가 달라지는데,
+        // 이때 Select를 한다면 영속성 컨텍스트의 정보가 우선권을 가져가 DB에서 가져온 정보가 무시된다.
+        // em.flush(), em.clear()를 통해서 이 문제를 해결 할 수 있다.
+
+        List<Member> result = qFactory
+                .selectFrom(member)
+                .fetch();
+
+        for (Member member1 : result) {
+            System.out.println("member : " + member1);
+        }
+    }
+
+    @Test
+    public void bulkAdd() {
+        qFactory
+                .update(member)
+                .set(member.age, member.age.add(1))
+//                .set(member.age, member.age.multiply(2))
+                .execute();
+    }
+
+    @Test
+    public void bulkDelete(){
+        qFactory
+                .delete(member)
+                .where(member.age.gt(18))
+                .execute();
     }
 }
