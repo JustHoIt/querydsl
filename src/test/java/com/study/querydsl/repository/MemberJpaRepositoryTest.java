@@ -69,6 +69,7 @@ class MemberJpaRepositoryTest {
         // 데이타가 조건이 없으면 모든 데이터를 조회해서 다 가져오기 때문에 조심해야한다.
 
         List<MemberTeamDto> result = memberJpaRepository.searchByBuilder(condition);
+//        List<MemberTeamDto> result = memberJpaRepository.searchByWhereParam(condition);
 
         assertThat(result).extracting("username").containsExactly("member4");
     }
