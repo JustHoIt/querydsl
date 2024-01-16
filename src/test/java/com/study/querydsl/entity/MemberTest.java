@@ -41,7 +41,7 @@ class MemberTest {
         List<Member> members = em.createQuery("select m from Member m", Member.class)
                 .getResultList();
         /*테스트 코드에서는 println 절대 사용X*/
-        for(Member member : members){
+        for (Member member : members) {
             System.out.println("member = " + member);
             System.out.println("-> member.team" + member.getTeam());
         }

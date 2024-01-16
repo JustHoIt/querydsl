@@ -104,12 +104,12 @@ public class MemberJpaRepository {
                         ageBetween(condition.getAgeGoe(), condition.getAgeLoe())
 //                        ageGoe(condition.getAgeGoe()),
 //                        ageLoe(condition.getAgeLoe())
-                        )
+                )
                 .fetch();
     }
 
     //조립 예시
-    private BooleanExpression ageBetween(int ageLoe, int ageGoe){
+    private BooleanExpression ageBetween(int ageLoe, int ageGoe) {
         return ageGoe(ageGoe).and(ageLoe(ageLoe));
     }
 
