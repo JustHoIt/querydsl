@@ -155,7 +155,7 @@ public class QuerydslBasicTest {
                 .selectFrom(member)
                 .fetch();
         //멤버를 단건 조회
-        Member fetchOne = qFactory
+        qFactory
                 .selectFrom(member)
                 .fetchOne();
         // 처음 한 것 조회
